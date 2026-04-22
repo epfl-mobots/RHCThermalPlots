@@ -11,6 +11,20 @@ import matplotlib.pyplot as plt
 from thermalframe import ThermalFrame, NoValidSensors
 from RHCImaging.VideoManagment.videolib import generateVideoFromList, fig_to_rgb_array, cropFrameToContent
 
+def extractAmbientTemp(temps:pd.DataFrame, num_sensors:int = 3)->pd.Series:
+    '''
+    Extracts the ambient temperature from the thermal dataframe.
+    The ambient temperature is estimated as the average of the lowest num_sensors sensors values.
+
+    Parameters:
+    - temps: pd.DataFrame containing the temperatures (index: datetime)
+    - num_sensors: number of sensors to consider for the ambient temperature estimation (default: 3)
+    Returns:
+    - ambient_temp: pd.Series containing the estimated ambient temperature (index: datetime)
+    '''
+    ambient_temp = temps.apply(lambda row: np.nanmean(np.sort(row.values)[:num_sensors]), axis=1)
+    return ambient_temp
+
 def _lab_update_isotherm(hive_min_temp:float, hive_max_temp:float) -> float:
     # When hut/min temp is 11.2175C, tracking iso = 15C
     # Note: see Science Robotics S.M. for explanation of the values
@@ -328,7 +342,6 @@ def trend_filter(data, lmbd=50, order=2):
     # Check for error.
     if prob.status != cp.OPTIMAL:
         raise Exception("Solver did not converge!")
-        return 0
     else:
         print("optimal objective value: {}".format(obj.value))
         return x.value
