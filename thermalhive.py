@@ -37,10 +37,13 @@ class ThermalHive:
     gap_between_frames_mm = 66  # mm, vertical gap between upper and lower frames, including the electronics bay on top of the lower frame
     HIVE_PADDING = 20  # padding around the hive when plotting
 
-    def __init__(self, upper_frame:ThermalFrame, lower_frame:ThermalFrame, isotherm:float):
+    def __init__(self, isotherm:float, upper_frame:ThermalFrame=None, lower_frame:ThermalFrame=None):
         # Make sure both frames belong to the same hive
-        if upper_frame.hive_id is not None and lower_frame.hive_id is not None:
-            assert upper_frame.hive_id == lower_frame.hive_id, "Upper and lower frames must belong to the same hive (hive_id mismatch)."
+        if upper_frame is not None and lower_frame is not None:
+            if upper_frame.hive_id is not None and lower_frame.hive_id is not None:
+                assert upper_frame.hive_id == lower_frame.hive_id, "Upper and lower frames must belong to the same hive (hive_id mismatch)."
+        # Make sure we have at least one frame to work with
+        assert upper_frame is not None or lower_frame is not None, "At least one of upper_frame or lower_frame must be provided."
         self.frames = {'upper': upper_frame, 'lower': lower_frame}
 
         # Temperature isotherm that defines a cluster
@@ -157,8 +160,26 @@ class ThermalHive:
         '''
         # Ensure that both Thermal Frames have their thermal field calculated (for plotting)
         for key in self.frames.keys():
-            if self.frames[key].thermal_field is None:
+            if self.frames[key] is not None and self.frames[key].thermal_field is None:
                 self.frames[key].calculate_thermal_field()
+
+        def _draw_black_frame(y_offset:float):
+            ax.add_patch(
+                plt.Rectangle(
+                    (0, y_offset),
+                    ThermalFrame.x_pcb,
+                    ThermalFrame.y_pcb,
+                    color='black',
+                    zorder=0,
+                )
+            )
+
+        lower_frame = self.frames['lower']
+        upper_frame = self.frames['upper']
+        thermal_frames = [frame for frame in [lower_frame, upper_frame] if frame is not None]
+        if Tgrad and len(thermal_frames) > 0:
+            v_min = min(frame.min_temp for frame in thermal_frames)
+            v_max = max(frame.max_temp for frame in thermal_frames)
         
         lw = 1.5
         # First draw the frame contours
@@ -175,13 +196,20 @@ class ThermalHive:
                  ThermalFrame.y_pcb + ThermalHive.gap_between_frames_mm],
                 lw=lw/2, c='black', zorder=2)
         
-        if Tgrad:
-            v_min = min(self.frames['lower'].min_temp, self.frames['upper'].min_temp)
-            v_max = max(self.frames['lower'].max_temp, self.frames['upper'].max_temp)
-            # Plot the thermal gradient of both frames
-            self.frames['lower'].plot_thermal_field(ax, cmap='bwr', show_cb=True, v_min=v_min, v_max=v_max)
-            self.frames['upper'].plot_thermal_field(ax, cmap='bwr', show_cb=False, v_min=v_min, v_max=v_max,
-                y_offset=ThermalHive.gap_between_frames_mm + ThermalFrame.y_pcb)
+        lower_y_offset = 0
+        upper_y_offset = ThermalHive.gap_between_frames_mm + ThermalFrame.y_pcb
+        show_lower_cb = lower_frame is not None and Tgrad
+        show_upper_cb = upper_frame is not None and lower_frame is None and Tgrad
+
+        if lower_frame is None:
+            _draw_black_frame(lower_y_offset)
+        elif Tgrad:
+            lower_frame.plot_thermal_field(ax, cmap='bwr', show_cb=show_lower_cb, v_min=v_min, v_max=v_max)
+
+        if upper_frame is None:
+            _draw_black_frame(upper_y_offset)
+        elif Tgrad:
+            upper_frame.plot_thermal_field(ax, cmap='bwr', show_cb=show_upper_cb, v_min=v_min, v_max=v_max, y_offset=upper_y_offset)
 
         if not contours and not center and not box and not Tgrad:
             print("Nothing to plot!")
@@ -314,6 +342,13 @@ class ThermalHive:
         assert frame in ['upper', 'lower'], "frame must be either 'upper' or 'lower'"
 
         tf = self.frames[frame] # ThermalFrame
+        if tf is None:
+            self.contours_CoM_frame[frame] = []
+            self.contours_box_frame[frame] = []
+            self.areas[frame] = []
+            self.n_contours[frame] = 0
+            self._contours_frame[frame] = []
+            return
 
         # # 3. Find contour line(s)
         contours = self._inner_find_contours(tf)
