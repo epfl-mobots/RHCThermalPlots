@@ -5,8 +5,9 @@ Author(s):
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.interpolate import RBFInterpolator
+from scipy.interpolate import Rbf
 from RHCImaging.HiveOpenings.libOpenings import valid_ts
+from typing import List
 
 # Make an exception class for no sensors being valid, where I can add a message
 class NoValidSensors(Exception):
@@ -77,7 +78,7 @@ class ThermalFrame:
         c = tgt % 11
         mapping_t_to_row_col[s] = {'row': r, 'col': c}
 
-    def __init__(self, temperature_data, hive_id:int=-1, ts:pd.Timestamp=None, bad_sensors:list[int]=[]):
+    def __init__(self, temperature_data, hive_id:int=-1, ts:pd.Timestamp=None, bad_sensors:List[int]=[]):
         '''
         temperature_data: list or np.ndarray of length 64 or 65 (if validity flag is included)
         hive_id: int, id of the hive (for plotting purposes and to check validity)
@@ -117,7 +118,7 @@ class ThermalFrame:
         
         self.temperature_array = self.temperature_list[ThermalFrame.sensor_idx_map] # Here the order is changed to match the sensor positions on the PCB
 
-    def add_bad_sensors(self, bad_sensors:list[int]):
+    def add_bad_sensors(self, bad_sensors:List[int]):
         '''Add more bad sensors'''
         self.bad_sensors = self.bad_sensors + bad_sensors
         self.updateBadSensors()
@@ -225,14 +226,14 @@ class ThermalFrame:
             print(f"shape trusty sensor_pos: {np.shape(sensor_pos)}")
             print(f"shape temp_array_trusty: {np.shape(self.temp_array_trusty)}")
 
-        self.rbf = RBFInterpolator(sensor_pos, self.temp_array_trusty, kernel='linear')
+        self.rbf = Rbf(self.sensor_x_trusty, self.sensor_y_trusty, self.temp_array_trusty, function='linear')
         grid_flattened = ThermalFrame.grid.reshape(2, -1).T
         if verbose:
             print(ThermalFrame.grid)
             print(grid_flattened)
             print(f"grid_flattened: {np.shape(grid_flattened)}")
             print(f"grid: {np.shape(ThermalFrame.grid)}")
-        sensor_zi = self.rbf(grid_flattened)
+        sensor_zi = self.rbf(grid_flattened[:, 0], grid_flattened[:, 1])
         ygrid = sensor_zi.reshape(410, 180).T
         ygrid = np.flipud(ygrid) # Flip the y-axis to match the sensor positions
         if verbose:

@@ -10,6 +10,7 @@ from thermalframe import ThermalFrame
 from matplotlib.contour import QuadContourSet
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Tuple
 
 WARNING = '\033[93m'
 BOLD = '\033[1m'
@@ -88,7 +89,7 @@ class ThermalHive:
         ''' Search for cluster(s) position(s) in the whole hive'''
         return self.find_hive_contours(f'ThermalHive-update|{why}', verbose=verbose)
 
-    def add_offset(self, pos:tuple[float, float], frame:str):
+    def add_offset(self, pos:Tuple[float, float], frame:str):
         assert frame in ['upper', 'lower'], "frame must be either 'upper' or 'lower'"
         if self.origin_x[frame] is None or self.origin_y[frame] is None:
             raise ValueError("Origin not set. Use set_origins() to set the origins of the upper and lower frames.")
