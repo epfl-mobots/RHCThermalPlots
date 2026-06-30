@@ -303,7 +303,7 @@ class ThermalFrame:
             ax.annotate(f'{self.max_temp:.1f}°C', xy=(x, y), xytext=(5, 5), textcoords='offset points', fontsize=10, color='black')
             ax.legend(loc='upper right', fontsize=7)
 
-        ax.set_title(f'Thermal field for hive {self.hive_id} {"(no valid sensors)" if self.n_bad_sensors==ThermalFrame.n_sensors else ""}')
+        ax.set_title(f'Thermal field for hive {self.hive_id} at {self.ts} {"(no valid sensors)" if self.n_bad_sensors==ThermalFrame.n_sensors else ""}')
         ax.set_xlim([0, self.x_pcb])
         ax.set_ylim([0, self.y_pcb])
 
