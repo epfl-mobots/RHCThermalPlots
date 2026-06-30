@@ -8,6 +8,7 @@ import pandas as pd
 import scipy
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from typing import List
 from thermalframe import ThermalFrame, NoValidSensors
 from RHCImaging.VideoManagment.videolib import generateVideoFromList, fig_to_rgb_array, cropFrameToContent
 
@@ -169,7 +170,7 @@ def readFromFile(filepath:str, verbose:bool=False)->pd.DataFrame:
 
 def preview(df_therm_data, 
             show_sensors:bool=False, 
-            contours:list[float] = None, 
+            contours:List[float] = None, 
             vmin=None,
             vmax=None,
             rows=None):
@@ -223,9 +224,9 @@ def generateThermalVideo(df_therm_data:pd.DataFrame,
                          show_cb:bool=False,
                          show_sensors:bool=False, 
                          show_max_temp:bool=False,
-                         contours:list[float]=[], 
+                         contours:List[float]=[], 
                          vmin:float=None, vmax:float=None,
-                         faulty_s:list[int]=[],
+                         faulty_s:List[int]=[],
                          padding:int=50,
                          verbose:bool=False):
     '''
