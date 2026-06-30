@@ -5,7 +5,7 @@ Author(s):
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.interpolate import Rbf
+from scipy.interpolate import RBFInterpolator
 from RHCImaging.HiveOpenings.libOpenings import valid_ts
 from typing import List
 
@@ -226,14 +226,14 @@ class ThermalFrame:
             print(f"shape trusty sensor_pos: {np.shape(sensor_pos)}")
             print(f"shape temp_array_trusty: {np.shape(self.temp_array_trusty)}")
 
-        self.rbf = Rbf(self.sensor_x_trusty, self.sensor_y_trusty, self.temp_array_trusty, function='linear')
+        self.rbf = RBFInterpolator(sensor_pos, self.temp_array_trusty, kernel='linear')
         grid_flattened = ThermalFrame.grid.reshape(2, -1).T
         if verbose:
             print(ThermalFrame.grid)
             print(grid_flattened)
             print(f"grid_flattened shape: {np.shape(grid_flattened)}")
             print(f"grid shape: {np.shape(ThermalFrame.grid)}")
-        sensor_zi = self.rbf(grid_flattened[:, 0], grid_flattened[:, 1])
+        sensor_zi = self.rbf(grid_flattened)
         ygrid = sensor_zi.reshape(410, 180).T
         ygrid = np.flipud(ygrid) # Flip the y-axis to match the sensor positions
         if verbose:
