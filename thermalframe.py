@@ -231,8 +231,8 @@ class ThermalFrame:
         if verbose:
             print(ThermalFrame.grid)
             print(grid_flattened)
-            print(f"grid_flattened: {np.shape(grid_flattened)}")
-            print(f"grid: {np.shape(ThermalFrame.grid)}")
+            print(f"grid_flattened shape: {np.shape(grid_flattened)}")
+            print(f"grid shape: {np.shape(ThermalFrame.grid)}")
         sensor_zi = self.rbf(grid_flattened[:, 0], grid_flattened[:, 1])
         ygrid = sensor_zi.reshape(410, 180).T
         ygrid = np.flipud(ygrid) # Flip the y-axis to match the sensor positions
@@ -253,13 +253,14 @@ class ThermalFrame:
                            contours:list=None, annotate_contours:bool=True, 
                            v_min=None, v_max=None, 
                            viewed_from:str = 'front',
-                           y_offset:float=0.0):
+                           y_offset:float=0.0,
+                           verbose:bool=False):
         
         assert viewed_from in ['front', 'back'], "viewed_from must be 'front' or 'back'"
         cm = plt.get_cmap('bwr') if cmap is None else cmap
 
         if self.thermal_field is None:
-            temp_field = self.calculate_thermal_field()
+            temp_field = self.calculate_thermal_field(verbose=verbose)
         else:
             temp_field = self.thermal_field.copy()
 
