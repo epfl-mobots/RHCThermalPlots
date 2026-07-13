@@ -19,7 +19,7 @@ def extractAmbientTemp(temps:pd.DataFrame, num_sensors:int = 3)->pd.Series:
 
     Parameters:
     - temps: pd.DataFrame containing the temperatures (index: datetime)
-    - num_sensors: number of sensors to consider for the ambient temperature estimation (default: 3)
+    - num_sensors: number of sensors to consider for the ambient temperature estimation through averaging (default: 3)
     Returns:
     - ambient_temp: pd.Series containing the estimated ambient temperature (index: datetime)
     '''
