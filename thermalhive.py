@@ -252,7 +252,7 @@ class ThermalHive:
 
     #---- SETTERS ----
 
-    def set_origins(self, origin_upper:tuple[float, float], origin_lower:tuple[float, float]):
+    def set_origins(self, origin_upper:Tuple[float, float], origin_lower:Tuple[float, float]):
         '''
         Set the origins of the upper and lower frames through tuples (x0, y0).
         '''
